@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+rcommand='puts YAML.load_file("./.travis.yml")["env"]["matrix"].join(" ").gsub("RAILS_VERSION=", "")'
+versions=$(ruby -ryaml -e "$rcommand")
+
+for version in ${versions[@]}; do
+  export RAILS_VERSION="$version"
+  rm -f Gemfile.lock
+  bundle check || bundle --local || bundle
+  bundle exec rake test
+  if [ "$?" -eq 0 ]; then
+    # green in ANSI
+    echo -e "\033[32m **** Tests passed against Rails ${RAILS_VERSION} **** \033[0m"
+  else
+    # red in ANSI
+    echo -e "\033[31m **** Tests failed against Rails ${RAILS_VERSION} **** \033[0m"
+    read -p '[Enter] any key to continue, [q] to quit...' prompt
+    if [ "$prompt" = 'q' ]; then
+      unset RAILS_VERSION
+      exit 1
+    fi
+fi
+  unset RAILS_VERSION
+done
