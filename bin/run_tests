@@ -14,11 +14,8 @@ for version in ${versions[@]}; do
   else
     # red in ANSI
     echo -e "\033[31m **** Tests failed against Rails ${RAILS_VERSION} **** \033[0m"
-    read -p '[Enter] any key to continue, [q] to quit...' prompt
-    if [ "$prompt" = 'q' ]; then
-      unset RAILS_VERSION
-      exit 1
-    fi
+    unset RAILS_VERSION
+    exit 1
 fi
   unset RAILS_VERSION
 done
