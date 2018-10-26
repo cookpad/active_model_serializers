@@ -54,6 +54,11 @@ module ActiveModelSerializers
       has_one :bio
     end
 
+    class AuthorSerializerWithCache < ActiveModel::Serializer
+      cache
+      attributes :name
+    end
+
     class Blog < ::Model
       attributes :name
       associations :writer
@@ -142,6 +147,18 @@ module ActiveModelSerializers
       @author_serializer   = AuthorSerializer.new(@author)
       @comment_serializer  = CommentSerializer.new(@comment)
       @blog_serializer     = BlogSerializer.new(@blog)
+    end
+
+    def test_expiring_of_cache_at_update_of_record
+      if ARModels::Author.respond_to?(:cache_versioning)
+        ARModels::Author.cache_versioning = true
+      end
+      author = ARModels::Author.create(name: 'Foo')
+      author_json = AuthorSerializerWithCache.new(author).as_json
+      assert_equal 'Foo', author_json[:name]
+      author.update_attributes(name: 'Bar')
+      author_json = AuthorSerializerWithCache.new(author).as_json
+      assert_equal 'Bar', author_json[:name]
     end
 
     def test_explicit_cache_store

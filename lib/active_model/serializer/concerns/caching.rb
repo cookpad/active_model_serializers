@@ -229,6 +229,7 @@ module ActiveModel
       def fetch(adapter_instance, cache_options = serializer_class._cache_options, key = nil)
         if serializer_class.cache_store
           key ||= cache_key(adapter_instance)
+          cache_options = (cache_options || {}).merge(version: object_cache_version) if object_cache_version
           serializer_class.cache_store.fetch(key, cache_options) do
             yield
           end
@@ -290,6 +291,10 @@ module ActiveModel
         else
           fail UndefinedCacheKey, "#{object.class} must define #cache_key, or the 'key:' option must be passed into '#{serializer_class}.cache'"
         end
+      end
+
+      def object_cache_version
+        object.cache_version if object.respond_to?(:cache_version)
       end
 
       def serializer_class
